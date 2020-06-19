@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Container, Row, Col} from 'reactstrap';
 import InputForm from './InputForm.js';
 import RefSuggestions from './RefSuggestions.js';
+import QueryListDisplay from './QueryListDisplay';
 
 export default class InputPage extends Component {
   constructor(props) {
@@ -42,6 +43,8 @@ export default class InputPage extends Component {
       else if ('refSample' in c) c = {...c, refRun: null};
 
       let query = {...prevState.query, ...c};
+      //gotta make refList[current].query a thing. how to do that
+
       if (refEqualsData) {
         query.refSeries = query.dataSeries;
         query.refSample = query.dataSample;
@@ -63,7 +66,7 @@ export default class InputPage extends Component {
     });
   };
 
-  handleClearForm = () => {
+  handleClearForm = () => {   
     this.setState({
       refEqualsData: true,
       query: {
@@ -77,6 +80,10 @@ export default class InputPage extends Component {
       },
     });
   };
+
+  handleAddQuery = (query) => {
+    this.props.queryCallback(query);
+  }
 
   render() {
     let query = this.state.query;
@@ -100,7 +107,32 @@ export default class InputPage extends Component {
             />
           </Col>
         </Row>
+        <Row>
+          <Col>
+          {/*
+            <button onClick={() => this.handleAddQuery(query)}>
+              add ref to list
+            </button>
+            <button onClick={this.props.clearQueryList}>
+              clear ref list
+            </button>
+            {/* 
+            why does the second one not work when i pass a function in
+            is it because it's a function from the parent?
+            */}
+          </Col>
+          <Col>
+            < QueryListDisplay 
+              query={this.state.query}
+              queryList={this.props.recentQueryList}
+              handleAddQuery = {() => this.props.queryCallback(query)}
+              handleClearList = {this.props.clearQueryList}
+            />
+          </Col>
+        </Row>
       </Container>
     );
   }
 }
+/* why does handleAddQuery need () => and handleClearList doesn't. is it the fact
+that queyrCallback has an argument?*/

@@ -39,6 +39,7 @@ export default class PlotsPage extends Component {
   }
 
   componentWillMount = () => {
+    // apparently was deprecated in 2018 due to unsafe for async rendering
     this.update();
   };
 
@@ -59,6 +60,9 @@ export default class PlotsPage extends Component {
     } else {
       this.props.onNewQuery(this.props.match.params);
       this.loadReport(this.props.match.params);
+
+      console.log("match params", this.props.match.params); 
+      console.log("queryList", this.props.recentQueryList);
     }
   };
 
@@ -101,7 +105,7 @@ export default class PlotsPage extends Component {
           .then(res => {
             const plots = res.items;
             this.setState({plots, procReq: null, showLoading: false});
-          })
+          }) 
           .catch(err => {
             if (err.type === 'cancel') return;
             this.setState({procReq: null, error: err, showLoading: false});
