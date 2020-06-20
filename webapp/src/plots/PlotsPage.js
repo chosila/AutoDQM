@@ -61,8 +61,7 @@ export default class PlotsPage extends Component {
       this.props.onNewQuery(this.props.match.params);
       this.loadReport(this.props.match.params);
 
-      console.log("match params", this.props.match.params); 
-      console.log("queryList", this.props.recentQueryList);
+      //this.loadMultipleReport();
     }
   };
 
@@ -121,6 +120,21 @@ export default class PlotsPage extends Component {
         });
       });
   };
+
+  loadMultipleReport = () => {
+    let refReqs = [];
+    let dataReqs = [];
+    let recentQueryList = this.props.recentQueryList;
+
+    for (let query of recentQueryList){
+      refReqs.push(api.loadRun(query.refSeries, query.refSample, query.refRun));
+      dataReqs.push(api.loadRun(query.dataSeries, query.dataSample, query.dataRun));
+    } 
+
+    Promise.all(refReqs.concat(dataReqs)).then(res => {
+      console.log("hey");// should i try to send the whole list to back end, or should i try to modify back end to handle list
+    })
+  }
 
   validParams = params => {
     return (
