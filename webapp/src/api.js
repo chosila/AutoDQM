@@ -2,6 +2,26 @@ import axios from 'axios';
 
 const API = '/cgi-bin/index.py';
 
+export function tmp(
+  subsystem,
+  refSeries,
+  refSample,
+  refRun,
+  dataSeries,
+  dataSample,
+  dataRun,) {
+  return cancellableQuery(API, {
+    type: 'test',
+    subsystem: subsystem,
+    ref_series: refSeries,
+    ref_sample: refSample,
+    ref_run: refRun,
+    data_series: dataSeries,
+    data_sample: dataSample,
+    data_run: dataRun,
+  });
+}
+
 export function getSubsystems() {
   return cancellableQuery(API, {type: 'get_subsystems'});
 }

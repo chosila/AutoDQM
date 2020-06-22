@@ -59,9 +59,9 @@ export default class PlotsPage extends Component {
       this.setState({error: {message: 'Invalid report parameters!'}});
     } else {
       this.props.onNewQuery(this.props.match.params);
-      this.loadReport(this.props.match.params);
+      //this.loadReport(this.props.match.params);
 
-      //this.loadMultipleReport();
+      this.loadMultipleReport();
     }
   };
 
@@ -131,8 +131,26 @@ export default class PlotsPage extends Component {
       dataReqs.push(api.loadRun(query.dataSeries, query.dataSample, query.dataRun));
     } 
 
+    let subsystem = [];
+    let refSeries = [];
+    let refSample = [];
+    let refRun = [];
+    let dataSeries = [];
+    let dataSample = [];
+    let dataRun = [];
+
     Promise.all(refReqs.concat(dataReqs)).then(res => {
-      console.log("hey");// should i try to send the whole list to back end, or should i try to modify back end to handle list
+      for (let i = 0; i < recentQueryList.length; i++){
+        subsystem.push(recentQueryList[i].subsystem);
+        refSeries.push(recentQueryList[i].refSeries);
+        refSample.push(recentQueryList[i].refSample);
+        refRun.push(recentQueryList[i].refRun);
+        dataSeries.push(recentQueryList[i].dataSeries);
+        dataSample.push(recentQueryList[i].dataSample);
+        dataRun.push(recentQueryList[i].dataRun); 
+      }
+
+      api.tmp(subsystem, refSeries, refSample, refRun, dataSeries, dataSample, dataRun);
     })
   }
 

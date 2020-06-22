@@ -10,6 +10,8 @@ from autodqm import compare_hists
 from autodqm.dqm import DQMSession
 from autoref import sql
 
+import cgitb; cgitb.enable() # for displaying errors on the webpage if errors occur
+
 VARS = {}
 
 
@@ -40,6 +42,16 @@ def handle_request(req):
                            req['run'],
                            req['series'],
                            req['sample'])
+        elif req['type'] == "test": #this only works if you only have 1 thing. we might actually have to do the stringify thing
+            #data = {'item': req['subsystem[]']}
+            data = multiple_processces(req['subsystem[]'],
+                           req['data_series[]'],
+                           req['data_sample[]'],
+                           req['data_run[]'],
+                           req['ref_series[]'],
+                           req['ref_sample[]'],
+                           req['ref_run[]'])
+
         else:
             raise error
     except Exception as e:
@@ -56,6 +68,8 @@ def handle_request(req):
             res['data'] = data
         return res
 
+def multiple_processces(subsystem, data_series, data_sample, data_run, ref_series, ref_sample, ref_run):
+    return {'items': [{'subsystem': subsystem}, {'data_seires': data_series}, {'data_sample': data_sample}, {'data_run': data_run}, {'ref_series': ref_series}, {'ref_sample': ref_sample}, {'ref_run': ref_run} ] }
 
 def fetch_run(series, sample, run):
     with make_dqm() as dqm:
@@ -160,8 +174,13 @@ if __name__ == "__main__":
     cgi_req = cgi.FieldStorage()
 
     req = {}
+
     for k in cgi_req.keys():
-        req[str(k)] = str(cgi_req[k].value)
+        if( "[]" in str(k) ):
+            req[str(k)] = cgi_req.getlist(k) #uhh get string or something
+        else: 
+            req[str(k)] = str(cgi_req[k].value)
+
 
     res = handle_request(req)
 
