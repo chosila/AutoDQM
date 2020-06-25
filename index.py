@@ -68,8 +68,35 @@ def handle_request(req):
             res['data'] = data
         return res
 
-def multiple_processces(subsystem, data_series, data_sample, data_run, ref_series, ref_sample, ref_run):
-    return {'items': [{'subsystem': subsystem}, {'data_seires': data_series}, {'data_sample': data_sample}, {'data_run': data_run}, {'ref_series': ref_series}, {'ref_sample': ref_sample}, {'ref_run': ref_run} ] }
+def multiple_processces(subsystem, 
+                        data_series, data_sample, data_run, 
+                        ref_series, ref_sample, ref_run):
+    data_path = []
+    ref_path = []
+    with make_dqm() as dqm:
+        for i in range(len(subsystem)):
+            ref_path.append(dqm.fetch_run(ref_series[i], ref_sample[i], ref_run[i]))
+            data_path.append(dqm.fetch_run(data_series[i], data_sample[i], data_run[i]))
+
+    results_dir = os.path.join(VARS['PUBLIC'], 'results')
+    plugin_dir = VARS['PLUGINS']
+    config_dir = VARS['CONFIG']
+
+    results = compare_hists.process(config_dir, subsystem,
+                                    data_series, data_sample,
+                                    data_run, data_path,
+                                    ref_series, ref_sample,
+                                    ref_run, ref_path,
+                                    output_dir=results_dir,
+                                    plugin_dir=plugin_dir)
+    # def relativize(p): return os.path.join(
+    #     '/results', os.path.relpath(p, results_dir))
+    # for r in results:
+    #     r['pdf_path'] = relativize(r['pdf_path'])
+    #     r['json_path'] = relativize(r['json_path'])
+    #     r['png_path'] = relativize(r['png_path'])
+
+    return {'items': results}
 
 def fetch_run(series, sample, run):
     with make_dqm() as dqm:
@@ -177,7 +204,7 @@ if __name__ == "__main__":
 
     for k in cgi_req.keys():
         if( "[]" in str(k) ):
-            req[str(k)] = cgi_req.getlist(k) #uhh get string or something
+            req[str(k)] = cgi_req.getlist(k)
         else: 
             req[str(k)] = str(cgi_req[k].value)
 

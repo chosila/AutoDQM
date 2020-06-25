@@ -17,7 +17,26 @@ class App extends Component {
     const recentQuery = recentQueryString && JSON.parse(recentQueryString);
     this.state = {
       recentQuery: recentQuery,
-      recentQueryList: [],
+      recentQueryList: [ //don't forget to change this back to []
+        {
+          subsystem: 'CSC',
+          refSeries: 'Run2018',
+          refSample: 'EGamma',
+          refRun: '325172',
+          dataSeries: 'Run2018',
+          dataSample: 'EGamma',
+          dataRun: '325175',
+        },
+        {
+          subsystem: 'CSC',
+          refSeries: 'Run2018',
+          refSample: 'EGamma',
+          refRun: '325170',
+          dataSeries: 'Run2018',
+          dataSample: 'EGamma',
+          dataRun: '325175',
+        }
+      ],
     };
   }
 

@@ -21,30 +21,67 @@ def process(config_dir, subsystem,
     # Report only errors to stderr
     ROOT.gErrorIgnoreLevel = ROOT.kWarning + 1
 
-    histpairs = compile_histpairs(config_dir, subsystem,
-                                  data_series, data_sample, data_run, data_path,
-                                  ref_series, ref_sample, ref_run, ref_path)
+    histpairslist = []
 
-    for d in [output_dir + s for s in ['/pdfs', '/jsons', '/pngs']]:
-        if not os.path.exists(d):
-            os.makedirs(d)
+    for i in range(len(subsystem)):
+        histpairs = compile_histpairs(config_dir, subsystem[i],
+                                  data_series[i], data_sample[i], data_run[i], data_path[i],
+                                  ref_series[i], ref_sample[i], ref_run[i], ref_path[i])
+        histpairslist.append(histpairs)
+
+    # for d in [output_dir + s for s in ['/pdfs', '/jsons', '/pngs']]:
+    #     if not os.path.exists(d):
+    #         os.makedirs(d)
 
     hist_outputs = []
+    resultslist = []
 
     comparator_funcs = load_comparators(plugin_dir)
-    for hp in histpairs:
-        try:
-            comparators = [(c, comparator_funcs[c]) for c in hp.comparators]
-        except KeyError as e:
-            raise error("Comparator {} was not found.".format(str(e)))
+    for histpairs in histpairslist: 
+        for hp in histpairs:
+            try: #hp.comparators are the 'ks_test' and 'pull_values' 
+                comparators = [(c, comparator_funcs[c]) for c in hp.comparators]
+            except KeyError as e:
+                raise error("Comparator {} was not found.".format(str(e)))
 
-        for comp_name, comparator in comparators:
-            result_id = identifier(hp, comp_name)
+            insidelist = []
+            for comp_name, comparator in comparators:
+                result_id = identifier(hp, comp_name)
+                results = comparator(hp, **hp.config)
+                if not results:
+                    continue
+                    #info = {'wtf bruh': 'wtf'}
+                else: 
+                    info = {
+                        'id': result_id,
+                        'name': hp.data_name,
+                        'comparator': comp_name,
+                        'config': hp.config,
+                        'results': results.info,
+                    }
+                insidelist.append(info)
+            hist_outputs.append(insidelist)        
+        resultslist.append(hist_outputs)      
+                # keep result_id for each individual result, but push pdf_path and friends for after analyzing the group?
+                # will need to come up with different way to do result id if that is the case?
+
+                #results = comparators(hp, **hp.config)
+                # if not results: 
+                #    continue 
+
+                # resultslist.append(results)
+
+                # will need to be able to store the result with the id? 
+                
+
+        '''
             pdf_path = '{}/pdfs/{}.pdf'.format(output_dir, result_id)
             json_path = '{}/jsons/{}.json'.format(output_dir, result_id)
             png_path = '{}/pngs/{}.png'.format(output_dir, result_id)
 
-            if not os.path.isfile(json_path):
+            if not os.path.isfile(json_path): # will proceed if path doens't exist
+                # I think this means it runs through both comparator function for each hist, 
+                # and inside the comp func, it checks of hist is 1D/2D 
                 results = comparator(hp, **hp.config)
 
                 # Continue if no results
@@ -78,8 +115,10 @@ def process(config_dir, subsystem,
                     info = json.load(jf)
 
             hist_outputs.append(info)
+        '''
 
-    return hist_outputs
+    #return hist_outputs
+    return resultslist
 
 
 def compile_histpairs(config_dir, subsystem,
@@ -151,7 +190,6 @@ def compile_histpairs(config_dir, subsystem,
     data_file.Close()
     ref_file.Close()
     return histPairs
-
 
 def load_comparators(plugin_dir):
     """Load comparators from each python module in ADQM_PLUGINS."""
