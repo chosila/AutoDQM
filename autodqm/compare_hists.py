@@ -33,24 +33,22 @@ def process(config_dir, subsystem,
     #     if not os.path.exists(d):
     #         os.makedirs(d)
 
-    hist_outputs = []
-    resultslist = []
+    hist_outputs_list = []
 
     comparator_funcs = load_comparators(plugin_dir)
     for histpairs in histpairslist: 
+        hist_outputs = []
         for hp in histpairs:
             try: #hp.comparators are the 'ks_test' and 'pull_values' 
                 comparators = [(c, comparator_funcs[c]) for c in hp.comparators]
             except KeyError as e:
                 raise error("Comparator {} was not found.".format(str(e)))
 
-            insidelist = []
             for comp_name, comparator in comparators:
                 result_id = identifier(hp, comp_name)
                 results = comparator(hp, **hp.config)
                 if not results:
                     continue
-                    #info = {'wtf bruh': 'wtf'}
                 else: 
                     info = {
                         'id': result_id,
@@ -59,9 +57,9 @@ def process(config_dir, subsystem,
                         'config': hp.config,
                         'results': results.info,
                     }
-                insidelist.append(info)
-            hist_outputs.append(insidelist)        
-        resultslist.append(hist_outputs)      
+            hist_outputs.append(info)
+        hist_outputs_list.append(hist_outputs)
+
                 # keep result_id for each individual result, but push pdf_path and friends for after analyzing the group?
                 # will need to come up with different way to do result id if that is the case?
 
@@ -116,10 +114,15 @@ def process(config_dir, subsystem,
 
             hist_outputs.append(info)
         '''
-
+    samename = []
+    for i in range(len(hist_outputs_list[0])):
+        if (hist_outputs_list[0][i]['name'] == hist_outputs_list[1][i]['name']):
+            samename.append('yes')
+        else:
+            samename.append('no')
     #return hist_outputs
-    return resultslist
-
+    return {'histoutputs': hist_outputs_list, 'samename': samename}
+    #return hist_outputs_list 
 
 def compile_histpairs(config_dir, subsystem,
                       data_series, data_sample, data_run, data_path,
